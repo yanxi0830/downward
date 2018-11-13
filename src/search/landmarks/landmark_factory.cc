@@ -77,7 +77,12 @@ shared_ptr<LandmarkGraph> LandmarkFactory::compute_lm_graph(
              << lm_graph->number_of_conj_landmarks() << " are conjunctive \n"
              << lm_graph->number_of_edges() << " edges\n";
     }
-    //lm_graph->dump();
+
+    // Dump the Landmark Graph to console
+    cout << "lm_graph->dump()" << endl;
+    VariablesProxy variables = task_proxy.get_variables();
+    lm_graph->dump(variables);
+
     return lm_graph;
 }
 

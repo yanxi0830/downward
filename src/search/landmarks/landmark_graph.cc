@@ -300,4 +300,63 @@ void LandmarkGraph::dump(const VariablesProxy &variables) const {
     }
     cout << "Landmark graph end." << endl;
 }
+/*
+Dump LandmarkGraph to a better format to be populated as Reward Machine
+*/
+void LandmarkGraph::dump_file(const VariablesProxy &variables) const {
+    cout << "Dumping Landmark graph to file..." << endl;
+    set<LandmarkNode *, LandmarkNodeComparer> nodes2(nodes.begin(), nodes.end());
+
+    for (const LandmarkNode *node_p : nodes2) {
+        dump_node(variables, node_p);
+        for (const auto &parent : node_p->parents) {
+            const LandmarkNode *parent_node = parent.first;
+            const EdgeType &edge = parent.second;
+            cout << "\t\t<-_";
+            switch (edge) {
+            case EdgeType::necessary:
+                cout << "nec ";
+                break;
+            case EdgeType::greedy_necessary:
+                cout << "gn  ";
+                break;
+            case EdgeType::natural:
+                cout << "nat ";
+                break;
+            case EdgeType::reasonable:
+                cout << "r   ";
+                break;
+            case EdgeType::obedient_reasonable:
+                cout << "o_r ";
+                break;
+            }
+            dump_node(variables, parent_node);
+        }
+        for (const auto &child : node_p->children) {
+            const LandmarkNode *child_node = child.first;
+            const EdgeType &edge = child.second;
+            cout << "\t\t->_";
+            switch (edge) {
+            case EdgeType::necessary:
+                cout << "nec ";
+                break;
+            case EdgeType::greedy_necessary:
+                cout << "gn  ";
+                break;
+            case EdgeType::natural:
+                cout << "nat ";
+                break;
+            case EdgeType::reasonable:
+                cout << "r   ";
+                break;
+            case EdgeType::obedient_reasonable:
+                cout << "o_r ";
+                break;
+            }
+            dump_node(variables, child_node);
+        }
+        cout << endl;
+    }
+    cout << "Landmark graph end." << endl;
+}
 }

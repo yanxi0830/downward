@@ -195,6 +195,7 @@ public:
     }
     void dump_node(const VariablesProxy &variables, const LandmarkNode *node_p) const;
     void dump(const VariablesProxy &variables) const;
+    void dump_file(const VariablesProxy &variables) const;
 private:
     void generate_operators_lookups(const TaskProxy &task_proxy);
     int landmarks_count;
