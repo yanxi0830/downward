@@ -10,6 +10,7 @@
 #include <set>
 #include <sstream>
 #include <vector>
+#include <fstream>
 
 using namespace std;
 
@@ -306,57 +307,60 @@ Dump LandmarkGraph to a better format to be populated as Reward Machine
 void LandmarkGraph::dump_file(const VariablesProxy &variables) const {
     cout << "Dumping Landmark graph to file..." << endl;
     set<LandmarkNode *, LandmarkNodeComparer> nodes2(nodes.begin(), nodes.end());
+    
+    ofstream lm_file;
+    lm_file.open("landmark.txt");
 
     for (const LandmarkNode *node_p : nodes2) {
-        dump_node(variables, node_p);
-        for (const auto &parent : node_p->parents) {
-            const LandmarkNode *parent_node = parent.first;
-            const EdgeType &edge = parent.second;
-            cout << "\t\t<-_";
-            switch (edge) {
-            case EdgeType::necessary:
-                cout << "nec ";
-                break;
-            case EdgeType::greedy_necessary:
-                cout << "gn  ";
-                break;
-            case EdgeType::natural:
-                cout << "nat ";
-                break;
-            case EdgeType::reasonable:
-                cout << "r   ";
-                break;
-            case EdgeType::obedient_reasonable:
-                cout << "o_r ";
-                break;
-            }
-            dump_node(variables, parent_node);
-        }
+        // LandmarkNode(node_id, children, parent, facts, disj, conj, in_goal)
+        // LandmarkNode(1, {0: 'gn'}, {3: 'gn'}, Atom('visited-mail', []), False, False, False)
+        lm_file << "(" << node_p->get_id() << ", ";
+        // dump children
+        lm_file << "{";
+        size_t i = 0;
         for (const auto &child : node_p->children) {
             const LandmarkNode *child_node = child.first;
             const EdgeType &edge = child.second;
-            cout << "\t\t->_";
-            switch (edge) {
-            case EdgeType::necessary:
-                cout << "nec ";
-                break;
-            case EdgeType::greedy_necessary:
-                cout << "gn  ";
-                break;
-            case EdgeType::natural:
-                cout << "nat ";
-                break;
-            case EdgeType::reasonable:
-                cout << "r   ";
-                break;
-            case EdgeType::obedient_reasonable:
-                cout << "o_r ";
-                break;
+            lm_file << child_node->get_id() << ": " << "EdgeType(" << (int) edge << ")";
+            if (i++ < node_p->children.size() - 1) {
+                lm_file << ", ";
             }
-            dump_node(variables, child_node);
         }
-        cout << endl;
+        lm_file << "}, ";
+        // dump parents
+        lm_file << "{";
+        i = 0;
+        for (const auto &parent : node_p->parents) {
+            const LandmarkNode *parent_node = parent.first;
+            const EdgeType & edge = parent.second;
+            lm_file << parent_node->get_id() << ": " << "EdgeType(" << (int) edge << ")";
+            if (i++ < node_p->parents.size() - 1) {
+                lm_file << ", ";
+            }
+        }
+        lm_file << "}, ";
+
+        // dump facts as list of strings
+        i = 0;
+        lm_file << "[";
+        for (const FactPair &lm_fact : node_p->facts) {
+            VariableProxy var = variables[lm_fact.var];
+            lm_file << "'" << var.get_fact(lm_fact.value).get_name() << "'";
+            if (i++ < node_p->facts.size() - 1) {
+                lm_file << ", ";
+            }
+        }
+        lm_file << "], ";
+
+        // dump disj, conj, in_goal boolean
+        lm_file << (node_p->disjunctive ? "True" : "False") << ", ";
+        lm_file << (node_p->conjunctive ? "True" : "False") << ", ";
+        lm_file << (node_p->in_goal ? "True" : "False");
+
+        // END OF NODE
+        lm_file << ")" << endl;
     }
-    cout << "Landmark graph end." << endl;
+
+    lm_file.close();
 }
 }

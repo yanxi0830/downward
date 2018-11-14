@@ -82,6 +82,7 @@ shared_ptr<LandmarkGraph> LandmarkFactory::compute_lm_graph(
     cout << "lm_graph->dump()" << endl;
     VariablesProxy variables = task_proxy.get_variables();
     lm_graph->dump(variables);
+    lm_graph->dump_file(variables);
 
     return lm_graph;
 }
